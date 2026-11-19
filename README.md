@@ -1,7 +1,8 @@
 # Solara Bay — Make GTA 6 (gta6-01)
 
-[![Bounty: Make GTA 6](https://img.shields.io/badge/make.fun-bounty%20gta6--01-ffc93c)](https://make.fun/bounty/gta6-01)
-[![Prize $1,666](https://img.shields.io/badge/prize-%241%2C666-gold)](https://make.fun/bounty/gta6-01)
+[![make.fun · gta6-01](https://make.fun/badge/gta6-01.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![rank](https://make.fun/badge/gta6-01/zesty-pika-87/gta6-01-entry/rank.svg)](https://make.fun/bounty/gta6-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
+[![reward](https://make.fun/badge/gta6-01/zesty-pika-87/gta6-01-entry/reward.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
 [![three.js 0.187.0](https://img.shields.io/badge/three.js-0.187.0-blue)](https://threejs.org/)
 
 An open-world story game for the [make.fun **gta6-01 — Make GTA 6** bounty](https://make.fun/bounty/gta6-01): one courier, one sun-soaked city, eight jobs — and the law never far behind.
