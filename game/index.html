@@ -3,17 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Block Dodger</title>
+<title>Solara Bay — an open-world story</title>
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #11141b; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1410; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
   #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
-  /* Read aloud, never shown: the status line screen readers announce. */
   #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .hidden { display: none !important; }
+  /* ---- HUD: kept sparse so the city stays readable at a glance ---- */
+  #hud { position: fixed; inset: 0; pointer-events: none; color: #fff7e6; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
+  #hud-topleft { position: absolute; top: 14px; left: 16px; }
+  #hud-money { font-size: 30px; font-weight: 800; color: #ffc93c; }
+  #hud-rank { font-size: 13px; letter-spacing: 2px; opacity: .85; }
+  #hud-topright { position: absolute; top: 14px; right: 16px; text-align: right; }
+  #hud-stars { font-size: 26px; letter-spacing: 3px; }
+  #hud-health { width: 150px; height: 8px; background: rgba(0,0,0,.5); border: 1px solid #fff7e6aa; border-radius: 4px; margin-top: 6px; margin-left: auto; }
+  #hud-health-fill { height: 100%; width: 100%; background: #2ec4b6; border-radius: 4px; }
+  #hud-objective { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); font-size: 17px; font-weight: 700; background: rgba(0,0,0,.45); padding: 8px 16px; border-radius: 20px; max-width: 46vw; text-align: center; }
+  #hud-speed { position: absolute; bottom: 16px; left: 16px; font-size: 24px; font-weight: 800; }
+  #hud-hint { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); font-size: 13px; opacity: .8; }
+  #hud-combo { position: absolute; top: 96px; left: 16px; font-size: 22px; font-weight: 800; color: #ff8c42; opacity: 0; }
+  #hud-banner { position: absolute; top: 34%; left: 50%; transform: translateX(-50%); font-size: 26px; font-weight: 800; text-align: center; background: rgba(0,0,0,.55); padding: 12px 22px; border-radius: 12px; opacity: 0; transition: opacity .4s; max-width: 80vw; }
+  #minimap-wrap { position: absolute; right: 16px; bottom: 16px; width: 180px; height: 180px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(255,247,230,.85); box-shadow: 0 0 0 3px rgba(0,0,0,.4); background: #2a7f9e; }
+  #minimap { width: 180px; height: 180px; display: block; }
+  #hud-flash { position: fixed; inset: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(255,30,30,.55) 100%); opacity: 0; pointer-events: none; }
+  /* ---- Panels ---- */
+  .panel { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10,8,6,.45); color: #fff7e6; }
+  .panel-card { background: rgba(20,16,12,.88); border: 1px solid #ffc93c66; border-radius: 16px; padding: 20px 30px; max-width: 640px; width: 92vw; max-height: 94vh; overflow-y: auto; text-align: center; }
+  .panel-card h1 { margin: 0 0 4px; font-size: 52px; letter-spacing: 3px; color: #ffc93c; }
+  .panel-card h2 { margin: 0 0 10px; font-size: 30px; color: #ffc93c; }
+  .panel-card p { margin: 8px 0; font-size: 16px; line-height: 1.5; color: #e8dcc0; }
+  .panel-card .prompt { color: #ffc93c; font-weight: 700; margin-top: 16px; }
+  .mission-row { display: block; width: 100%; text-align: left; background: #2a2118; border: 1px solid #ffc93c44; color: #fff7e6; border-radius: 10px; padding: 7px 12px; margin: 6px 0; cursor: pointer; font-family: inherit; }
+  .mission-row:hover { background: #3a2d1e; border-color: #ffc93c; }
+  .mission-num { font-weight: 800; color: #ffc93c; margin-right: 8px; }
+  .mission-name { font-weight: 700; font-size: 16px; }
+  .mission-meta { display: block; font-size: 13px; color: #d8cbb0; margin-top: 2px; }
+  .mission-brief { display: block; font-size: 13px; color: #e8dcc0; margin-top: 2px; font-style: italic; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; text-align: left; margin: 14px auto; max-width: 420px; font-size: 16px; }
+  .stats b { color: #ffc93c; }
 </style>
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
 </head>
 <body>
-<canvas id="game" aria-label="Block Dodger: move the paddle left and right to dodge falling blocks and catch coins"></canvas>
+<canvas id="game" aria-label="Solara Bay: an open-world city game. Walk, steal cars, outrun the police and finish eight story missions."></canvas>
 <p id="status" role="status" aria-live="polite"></p>
+
+<div id="hud">
+  <div id="hud-topleft"><div id="hud-money">$120</div><div id="hud-rank">RIO SANTANA · 0/8 MISSIONS</div></div>
+  <div id="hud-topright"><div id="hud-stars">☆☆☆☆☆</div><div id="hud-health"><div id="hud-health-fill"></div></div></div>
+  <div id="hud-objective">Press M to open the mission board</div>
+  <div id="hud-combo"></div>
+  <div id="hud-speed">ON FOOT</div>
+  <div id="hud-hint">WASD walk · E steal car · F shoot · M missions · P pause</div>
+  <div id="hud-banner"></div>
+  <div id="minimap-wrap"><canvas id="minimap" width="180" height="180"></canvas></div>
+</div>
+<div id="hud-flash"></div>
+
+<div id="panel-title" class="panel"><div class="panel-card">
+  <h1>SOLARA BAY</h1>
+  <p>An open-world story. One courier, one sun-soaked city, eight jobs — and the law never far behind.</p>
+  <p>Walk the streets, steal any car, outrun the Solara Bay police, and finish all eight missions to take the Crown.</p>
+  <p>WASD move &amp; drive · E enter / steal car · F shoot · Shift brake · M mission board · P pause</p>
+  <p class="prompt">Press Space or click to start</p>
+</div></div>
+
+<div id="panel-missions" class="panel hidden"><div class="panel-card">
+  <h2>MISSION BOARD</h2>
+  <p>Jobs from Mara Voss, Old Sal and The Broker. Click a job — or press its number — to start it.</p>
+  <div id="mission-list"></div>
+  <p class="prompt">Press M to close</p>
+</div></div>
+
+<div id="panel-victory" class="panel hidden"><div class="panel-card">
+  <h2>SOLARA CROWN SECURED</h2>
+  <p>All eight missions done. The bay is yours, Rio Santana.</p>
+  <div class="stats">
+    <span>Cash</span><b id="victory-money">$0</b>
+    <span>Cars stolen</span><b id="victory-stolen">0</b>
+    <span>Times busted</span><b id="victory-busted">0</b>
+    <span>Crashes</span><b id="victory-crashes">0</b>
+    <span>Distance driven</span><b id="victory-distance">0 km</b>
+    <span>Time</span><b id="victory-time">0:00</b>
+  </div>
+  <p class="prompt">Press Space to play again</p>
+</div></div>
+
+<div id="panel-over" class="panel hidden"><div class="panel-card">
+  <h2 id="over-title">WASTED</h2>
+  <p>Solara Bay is not done with you yet.</p>
+  <p class="prompt">Press Space or click to try again</p>
+</div></div>
+
+<div id="panel-paused" class="panel hidden"><div class="panel-card">
+  <h2>PAUSED</h2>
+  <p>The bay waits for you.</p>
+  <p class="prompt">Press P to resume</p>
+</div></div>
+
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>
